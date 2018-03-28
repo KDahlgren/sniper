@@ -1,0 +1,3 @@
+[submodule "lib/orik"]
+	path = lib/orik
+	url = https://github.com/KDahlgren/orik.git
