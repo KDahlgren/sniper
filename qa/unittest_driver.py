@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import logging, os, sys, unittest
-import Test_solvers, Test_transformers
+import Test_pycosat
 
 #####################
 #  UNITTEST DRIVER  #
@@ -19,12 +19,8 @@ def unittest_driver() :
     os.system( "rm ./IR*.db*" )
     logging.info( "  UNIT TEST DRIVER : deleted all rogue IR*.db* files." )
 
-  # run Test_solver tests
-  suite = unittest.TestLoader().loadTestsFromTestCase( Test_solver.Test_solver )
-  unittest.TextTestRunner( verbosity=2, buffer=True ).run( suite )
-
-  # run Test_transformers tests
-  suite = unittest.TestLoader().loadTestsFromTestCase( Test_transformer.Test_transformers )
+  # run Test_pycosat tests
+  suite = unittest.TestLoader().loadTestsFromTestCase( Test_pycosat.Test_pycosat )
   unittest.TextTestRunner( verbosity=2, buffer=True ).run( suite )
 
 
