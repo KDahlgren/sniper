@@ -1,5 +1,6 @@
 .DS_Store
 *.swp
+**/complete_dedalus_program.ded
 **/*.png
 **/data/
 

@@ -214,7 +214,9 @@ class PYCOSAT_Solver( object ) :
 
     if orik_rgg.rootname == "FinalState" :
       for d in orik_rgg.descendants :
-        fmla_list.append( self.orik_rgg_to_boolean_fmla( d ) )
+        fmla = self.orik_rgg_to_boolean_fmla( d )
+        if not fmla == "()" : # subtree must contain relevant data
+          fmla_list.append( fmla )
 
     return fmla_list
 
@@ -242,12 +244,10 @@ class PYCOSAT_Solver( object ) :
 
       for i in range( 0, len( orik_rgg.all_descendant_objs ) ) :
         curr_fmla = self.orik_rgg_to_boolean_fmla( orik_rgg.all_descendant_objs[ i ] )
-        if not curr_fmla == "" :
+        if not curr_fmla == "" and not curr_fmla == "()" :
           if i > 0 :
             this_fmla += "|"
           this_fmla += curr_fmla
-        else :
-          this_fmla = ""
 
     # --------------------------------------------------------- #
     # CASE root is a rule : AND all descendants
@@ -256,12 +256,10 @@ class PYCOSAT_Solver( object ) :
 
       for i in range( 0, len( orik_rgg.all_descendant_objs ) ) :
         curr_fmla = self.orik_rgg_to_boolean_fmla( orik_rgg.all_descendant_objs[ i ] )
-        if not curr_fmla == "" :
+        if not curr_fmla == "" and not curr_fmla == "()" :
           if not this_fmla == "" and i > 0 :
             this_fmla += "&"
           this_fmla += curr_fmla
-        else :
-          this_fmla = ""
 
     # --------------------------------------------------------- #
     # CASE root is a fact : return to string
@@ -278,10 +276,32 @@ class PYCOSAT_Solver( object ) :
         logging.warning( "WARNING : no 'CLOCKS_ONLY' defined in 'DEFAULT' section of " + \
                        self.argDict[ "settings" ] + "...running with CLOCKS_ONLY==False." )
       # ////////////////////////////////////////////////////// #
+      # ////////////////////////////////////////////////////// #
+      # check whether to include only non-self-comm clock facts in fmlas
+      try :
+        NO_SELF_COMMS = tools.getConfig( self.argDict[ "settings" ], "DEFAULT", "NO_SELF_COMMS", bool )
+      except ConfigParser.NoOptionError :
+        NO_SELF_COMMS = False
+        logging.warning( "WARNING : no 'NO_SELF_COMMS' defined in 'DEFAULT' section of " + \
+                       self.argDict[ "settings" ] + "...running with NO_SELF_COMMS==False." )
+      # ////////////////////////////////////////////////////// #
+      # ////////////////////////////////////////////////////// #
+      # check whether to include only non-node-crash clock facts in fmlas
+      try :
+        EXCLUDE_NODE_CRASHES = tools.getConfig( self.argDict[ "settings" ], "DEFAULT", "EXCLUDE_NODE_CRASHES", bool )
+      except ConfigParser.NoOptionError :
+        EXCLUDE_NODE_CRASHES = False
+        logging.warning( "WARNING : no 'EXCLUDE_NODE_CRASHES' defined in 'DEFAULT' section of " + \
+                       self.argDict[ "settings" ] + "...running with EXCLUDE_NODE_CRASHES==False." )
+      # ////////////////////////////////////////////////////// #
 
       logging.debug( "  ORIK RGG TO BOOLEAN FMLA : using CLOCKS_ONLY = " + str( CLOCKS_ONLY ) )
 
       if CLOCKS_ONLY and not literal.startswith( "fact->clock(" ) :
+        return ""
+      elif NO_SELF_COMMS and literal.startswith( "fact->clock(" ) and self.is_self_comm( literal ) :
+        return ""
+      elif EXCLUDE_NODE_CRASHES and literal.startswith( "fact->clock(" ) and self.is_node_crash( literal ) :
         return ""
       else :
         return literal # saves one set of parens
@@ -307,9 +327,48 @@ class PYCOSAT_Solver( object ) :
     this_fmla = this_fmla.replace( "_LBRKT_)", "_LBRKT__LPAR_" )
     this_fmla = this_fmla.replace( ",", "_COMMA_" )
 
-    return_fmla = "(" + this_fmla + ")"
-    logging.debug( "  ORIK RGG TO BOOLEAN FMLA : returning fmla = " + return_fmla )
-    return return_fmla
+    return "(" + this_fmla + ")"
+
+
+  ##################
+  #  IS SELF COMM  #
+  ##################
+  # only works on clock literal inputs
+  def is_self_comm( self, clock_literal ) :
+    logging.debug( "  IS SELF COMM : clock_literal = " + clock_literal )
+    data_list = self.get_data_list( clock_literal )
+    logging.debug( "  IS SELF COMM : data_list = " + str( data_list ) )
+    if data_list[ 0 ] == data_list[ 1 ] :
+      logging.debug( "  IS SELF COMM : returning True" )
+      return True
+    else :
+      logging.debug( "  IS SELF COMM : returning False" )
+      return False
+
+  ###################
+  #  IS NODE CRASH  #
+  ###################
+  # only works on clock literal inputs
+  def is_node_crash( self, clock_literal ) :
+    logging.debug( "  IS NODE CRASH : clock_literal = " + clock_literal )
+    data_list = self.get_data_list( clock_literal )
+    if data_list[ 1 ] == "_" :
+      logging.debug( "  IS NODE CRASH : returning True" )
+      return True
+    else :
+      logging.debug( "  IS NODE CRASH : returning False" )
+      return False
+
+  ###################
+  #  GET DATA LIST  #
+  ###################
+  def get_data_list( self, literal ) :
+    literal = literal[ literal.find( "([" ) : ] # remove relation name and prepend
+    literal = literal.replace( "([", "" )       # remove end bit
+    literal = literal.replace( "])", "" )       # remove end bit
+    literal = literal.replace( "'", "" )        # remove quotes
+    literal = literal.replace( '"', "" )        # remove quotes
+    return literal.split( "," )
 
 
 #########
