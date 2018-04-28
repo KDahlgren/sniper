@@ -46,6 +46,81 @@ class Test_pycosat( unittest.TestCase ) :
 
   PRINT_STOP = False
 
+  ################
+  #  SIMPLOG DM  #
+  ################
+  def test_simplog_dm( self ) :
+
+    test_id = "simplog_dm"
+    test_db = "./IR_" + test_id + ".db"
+
+    logging.debug( ">> RUNNING TEST '" + test_id + "' <<<" )
+
+    # --------------------------------------------------------------- #
+    # set up test
+
+    if os.path.exists( test_db ) :
+      os.remove( test_db )
+
+    IRDB   = sqlite3.connect( test_db )
+    cursor = IRDB.cursor()
+
+    dedt.createDedalusIRTables(cursor)
+    dedt.globalCounterReset()
+
+    # --------------------------------------------------------------- #
+    # specify input file paths
+
+    inputfile = "./dedalus_drivers/simplog_driver.ded"
+
+    # --------------------------------------------------------------- #
+    # get argDict
+
+    argDict = self.get_arg_dict( inputfile )
+    argDict[ "nodes" ]    = [ "a", "b", "c" ]
+    argDict[ "EOT" ]      = 4
+    argDict[ "EFF" ]      = 2
+    argDict[ 'settings' ] = "./settings_files/settings_dm.ini"
+
+    if not os.path.exists( argDict[ "data_save_path"] ) :
+      cmd = "mkdir " + argDict[ "data_save_path" ]
+      logging.debug( "  TEST SIMPLOG : running cmd = " + cmd )
+      os.system( cmd )
+
+    # --------------------------------------------------------------- #
+    # generate orik rgg
+
+    orik_rgg = self.get_orik_rgg( argDict, \
+                                  inputfile, \
+                                  cursor, \
+                                  test_id )
+
+    # --------------------------------------------------------------- #
+    # generate fault hypotheses
+
+    pycosat_solver = PYCOSAT_Solver.PYCOSAT_Solver( argDict, orik_rgg )
+
+    logging.debug( "  SIMPLOG : cnf_fmla_list :" )
+    for f in pycosat_solver.cnf_fmla_list :
+      logging.debug( f )
+
+    # get all the solns for all the fmlas for the provenance tree
+    all_solns = self.get_all_solns( pycosat_solver )
+
+    if self.PRINT_STOP :
+      print all_solns
+      sys.exit( "hit print stop." )
+
+    expected_all_solns = [["clock(['a','c','1','2'])", "clock(['a','b','1','2'])"]]
+    self.assertEqual( all_solns, expected_all_solns )
+
+    # --------------------------------------------------------------- #
+    # clean up yo mess
+
+    if os.path.exists( test_db ) :
+      os.remove( test_db )
+
+
   #############
   #  SIMPLOG  #
   #############
@@ -108,9 +183,10 @@ class Test_pycosat( unittest.TestCase ) :
 
     if self.PRINT_STOP :
       print all_solns
+      sys.exit( "hit print stop." )
 
-    expected_all_solns = []
-    self.assertTrue( all_solns, expected_all_solns )
+    expected_all_solns = [["clock(['a','b','1','2'])"], ["clock(['a','c','1','2'])"]]
+    self.assertEqual( all_solns, expected_all_solns )
 
 
     # --------------------------------------------------------------- #
@@ -183,10 +259,10 @@ class Test_pycosat( unittest.TestCase ) :
 
     if self.PRINT_STOP :
       print all_solns
+      sys.exit( "hit print stop." )
 
-    expected_all_solns = [["clock(['a','a','1','_'])"], ["clock(['b','b','1','_'])"]]
-    self.assertTrue( all_solns, expected_all_solns )
-
+    expected_all_solns = [["clock(['a','a','1','_'])", "clock(['c','c','1','_'])"], ["clock(['b','b','1','_'])"]]
+    self.assertEqual( all_solns, expected_all_solns )
 
     # --------------------------------------------------------------- #
     # clean up yo mess

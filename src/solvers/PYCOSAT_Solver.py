@@ -230,10 +230,12 @@ class PYCOSAT_Solver( object ) :
     logging.debug( "  ORIK RGG TO BOOLEAN FMLA : running process..." )
     logging.debug( "  ORIK RGG TO BOOLEAN FMLA : orik_rgg           : " + str( orik_rgg ) )
     logging.debug( "  ORIK RGG TO BOOLEAN FMLA : orik_rgg.treeType  : " + str( orik_rgg.treeType ) )
-    logging.debug( "  ORIK RGG TO BOOLEAN FMLA : orik_rgg.descendants : \n" + \
-                   str( orik_rgg.descendants ) )
-    logging.debug( "  ORIK RGG TO BOOLEAN FMLA : orik_rgg.all_descendant_objs : \n" + \
-                   str( orik_rgg.all_descendant_objs ) )
+    logging.debug( "  ORIK RGG TO BOOLEAN FMLA : orik_rgg.descendants : " )
+    for d in orik_rgg.descendants :
+      logging.debug( d )
+    logging.debug( "  ORIK RGG TO BOOLEAN FMLA : orik_rgg.all_descendant_objs : " )
+    for d in orik_rgg.all_descendant_objs :
+      logging.debug( str( d ) )
 
     this_fmla = ""
 
@@ -242,8 +244,10 @@ class PYCOSAT_Solver( object ) :
 
     if orik_rgg.treeType == "goal" :
 
-      for i in range( 0, len( orik_rgg.all_descendant_objs ) ) :
-        curr_fmla = self.orik_rgg_to_boolean_fmla( orik_rgg.all_descendant_objs[ i ] )
+      #for i in range( 0, len( orik_rgg.all_descendant_objs ) ) :
+      #  curr_fmla = self.orik_rgg_to_boolean_fmla( orik_rgg.all_descendant_objs[ i ] )
+      for i in range( 0, len( orik_rgg.descendants ) ) :
+        curr_fmla = self.orik_rgg_to_boolean_fmla( orik_rgg.descendants[ i ] )
         if not curr_fmla == "" and not curr_fmla == "()" :
           if i > 0 :
             this_fmla += "|"
@@ -254,8 +258,10 @@ class PYCOSAT_Solver( object ) :
 
     elif orik_rgg.treeType == "rule" :
 
-      for i in range( 0, len( orik_rgg.all_descendant_objs ) ) :
-        curr_fmla = self.orik_rgg_to_boolean_fmla( orik_rgg.all_descendant_objs[ i ] )
+      #for i in range( 0, len( orik_rgg.all_descendant_objs ) ) :
+      #  curr_fmla = self.orik_rgg_to_boolean_fmla( orik_rgg.all_descendant_objs[ i ] )
+      for i in range( 0, len( orik_rgg.descendants ) ) :
+        curr_fmla = self.orik_rgg_to_boolean_fmla( orik_rgg.descendants[ i ] )
         if not curr_fmla == "" and not curr_fmla == "()" :
           if not this_fmla == "" and i > 0 :
             this_fmla += "&"
