@@ -1,3 +1,5 @@
+**/**/*.db
+
 .DS_Store
 *.swp
 **/complete_dedalus_program.ded
