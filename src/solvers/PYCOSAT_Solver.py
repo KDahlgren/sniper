@@ -279,6 +279,7 @@ class PYCOSAT_Solver( object ) :
     elif orik_rgg.treeType == "fact" :
       literal = str( orik_rgg ).translate( None, string.whitespace )
 
+      # this check is probably superfluous:
       # ////////////////////////////////////////////////////// #
       # check whether to include only clock facts in fmlas
       try :
@@ -287,33 +288,11 @@ class PYCOSAT_Solver( object ) :
         CLOCKS_ONLY = False
         logging.warning( "WARNING : no 'CLOCKS_ONLY' defined in 'DEFAULT' section of " + \
                        self.argDict[ "settings" ] + "...running with CLOCKS_ONLY==False." )
-      # ////////////////////////////////////////////////////// #
-      # ////////////////////////////////////////////////////// #
-      # check whether to include only non-self-comm clock facts in fmlas
-      try :
-        NO_SELF_COMMS = tools.getConfig( self.argDict[ "settings" ], "DEFAULT", "NO_SELF_COMMS", bool )
-      except ConfigParser.NoOptionError :
-        NO_SELF_COMMS = False
-        logging.warning( "WARNING : no 'NO_SELF_COMMS' defined in 'DEFAULT' section of " + \
-                       self.argDict[ "settings" ] + "...running with NO_SELF_COMMS==False." )
-      # ////////////////////////////////////////////////////// #
-      # ////////////////////////////////////////////////////// #
-      # check whether to include only non-node-crash clock facts in fmlas
-      try :
-        EXCLUDE_NODE_CRASHES = tools.getConfig( self.argDict[ "settings" ], "DEFAULT", "EXCLUDE_NODE_CRASHES", bool )
-      except ConfigParser.NoOptionError :
-        EXCLUDE_NODE_CRASHES = False
-        logging.warning( "WARNING : no 'EXCLUDE_NODE_CRASHES' defined in 'DEFAULT' section of " + \
-                       self.argDict[ "settings" ] + "...running with EXCLUDE_NODE_CRASHES==False." )
-      # ////////////////////////////////////////////////////// #
 
       logging.debug( "  ORIK RGG TO BOOLEAN FMLA : using CLOCKS_ONLY = " + str( CLOCKS_ONLY ) )
+      # ////////////////////////////////////////////////////// #
 
       if CLOCKS_ONLY and not literal.startswith( "fact->clock(" ) :
-        return ""
-      elif NO_SELF_COMMS and literal.startswith( "fact->clock(" ) and self.is_self_comm( literal ) :
-        return ""
-      elif EXCLUDE_NODE_CRASHES and literal.startswith( "fact->clock(" ) and self.is_node_crash( literal ) :
         return ""
       else :
         return literal # saves one set of parens
