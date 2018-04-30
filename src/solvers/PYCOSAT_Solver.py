@@ -213,12 +213,18 @@ class PYCOSAT_Solver( object ) :
 
     fmla_list = []
 
+    logging.debug( "  ORIK RGG TO FMLA LIST : len( orik_rgg.descendants ) = " + str( len( orik_rgg.descendants ) ) )
+    if orik_rgg.rootname == "FinalState" :
+      for d in orik_rgg.descendants :
+        logging.debug( "  ORIK RGG TO FMLA LIST : d = " + str( d ) )
+
     if orik_rgg.rootname == "FinalState" :
       for d in orik_rgg.descendants :
         fmla = self.orik_rgg_to_boolean_fmla( d )
         if not fmla == "()" : # subtree must contain relevant data
           fmla_list.append( fmla )
 
+    logging.debug( "  ORIK RGG TO FMLA LIST : fmla_list = " + str( fmla_list ) )
     return fmla_list
 
 
@@ -334,6 +340,7 @@ class PYCOSAT_Solver( object ) :
     this_fmla = this_fmla.replace( "_LBRKT_)", "_LBRKT__LPAR_" )
     this_fmla = this_fmla.replace( ",", "_COMMA_" )
 
+    logging.debug( "  ORIK RGG TO BOOLEAN FMLA : returning " + "(" + this_fmla + ")" )
     return "(" + this_fmla + ")"
 
 
