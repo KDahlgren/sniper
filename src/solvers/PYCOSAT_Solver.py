@@ -190,6 +190,7 @@ class PYCOSAT_Solver( object ) :
   #  GET LIST OF LITERALS  #
   ##########################
   def get_list_of_literals( self, boolean_fmla ) :
+    logging.debug( "  GET LIST OF LITERALS : boolean_fmla = " + str( boolean_fmla ) )
     boolean_fmla = boolean_fmla.translate( None, string.whitespace ) # remove all white space
     boolean_fmla = boolean_fmla.replace( "("  , ""           )       # remove all (
     boolean_fmla = boolean_fmla.replace( ")"  , ""           )       # remove all )
