@@ -30,8 +30,18 @@ class PYCOSAT_Solver( object ) :
   # assume orik rgg input format
   def __init__( self, argDict, orik_rgg ) :
     self.argDict           = argDict
+
     self.boolean_fmla_list = self.orik_rgg_to_fmla_list( orik_rgg )
     self.cnf_fmla_list     = self.boolean_fmla_list_to_cnf_fmla_list()
+
+    logging.debug( "  PYCOSAT SOLVER __INIT__ : self.boolean_fmla_list = " + \
+                   str( self.boolean_fmla_list ) )
+    logging.debug( "  PYCOSAT SOLVER __INIT__ : self.cnf_fmla_list = " + \
+                   str( self.cnf_fmla_list ) )
+
+    #assert( self.cnf_fmla_list == ['clock_RPAR__RBRKT_a_COMMA_b_COMMA_1_COMMA_2_LBRKT__LPAR_ & clock_RPAR__RBRKT_a_COMMA_c_COMMA_1_COMMA_2_LBRKT__LPAR_'] )
+
+    #sys.exit( "blah" )
 
 
   ################
@@ -234,12 +244,16 @@ class PYCOSAT_Solver( object ) :
   # create one boolean formula for each post fact
   def orik_rgg_to_boolean_fmla( self, orik_rgg ) :
 
+    logging.debug( "=========================================================start" )
     logging.debug( "  ORIK RGG TO BOOLEAN FMLA : running process..." )
     logging.debug( "  ORIK RGG TO BOOLEAN FMLA : orik_rgg           : " + str( orik_rgg ) )
     logging.debug( "  ORIK RGG TO BOOLEAN FMLA : orik_rgg.treeType  : " + str( orik_rgg.treeType ) )
     logging.debug( "  ORIK RGG TO BOOLEAN FMLA : orik_rgg.descendants : " )
     for d in orik_rgg.descendants :
       logging.debug( d )
+    logging.debug( "  ORIK RGG TO BOOLEAN FMLA : orik_rgg.all_descendant_objs : " )
+    for d in orik_rgg.all_descendant_objs :
+      logging.debug( str( d ) )
     logging.debug( "  ORIK RGG TO BOOLEAN FMLA : orik_rgg.all_descendant_objs : " )
     for d in orik_rgg.all_descendant_objs :
       logging.debug( str( d ) )
@@ -251,10 +265,10 @@ class PYCOSAT_Solver( object ) :
 
     if orik_rgg.treeType == "goal" :
 
-      #for i in range( 0, len( orik_rgg.all_descendant_objs ) ) :
-      #  curr_fmla = self.orik_rgg_to_boolean_fmla( orik_rgg.all_descendant_objs[ i ] )
-      for i in range( 0, len( orik_rgg.descendants ) ) :
-        curr_fmla = self.orik_rgg_to_boolean_fmla( orik_rgg.descendants[ i ] )
+      #for i in range( 0, len( orik_rgg.descendants ) ) :
+      #  curr_fmla = self.orik_rgg_to_boolean_fmla( orik_rgg.descendants[ i ] )
+      for i in range( 0, len( orik_rgg.all_descendant_objs ) ) :
+        curr_fmla = self.orik_rgg_to_boolean_fmla( orik_rgg.all_descendant_objs[ i ] )
         if not curr_fmla == "" and not curr_fmla == "()" :
           if i > 0 :
             this_fmla += "|"
@@ -265,10 +279,10 @@ class PYCOSAT_Solver( object ) :
 
     elif orik_rgg.treeType == "rule" :
 
-      #for i in range( 0, len( orik_rgg.all_descendant_objs ) ) :
-      #  curr_fmla = self.orik_rgg_to_boolean_fmla( orik_rgg.all_descendant_objs[ i ] )
-      for i in range( 0, len( orik_rgg.descendants ) ) :
-        curr_fmla = self.orik_rgg_to_boolean_fmla( orik_rgg.descendants[ i ] )
+      #for i in range( 0, len( orik_rgg.descendants ) ) :
+      #  curr_fmla = self.orik_rgg_to_boolean_fmla( orik_rgg.descendants[ i ] )
+      for i in range( 0, len( orik_rgg.all_descendant_objs ) ) :
+        curr_fmla = self.orik_rgg_to_boolean_fmla( orik_rgg.all_descendant_objs[ i ] )
         if not curr_fmla == "" and not curr_fmla == "()" :
           if not this_fmla == "" and i > 0 :
             this_fmla += "&"
@@ -294,8 +308,10 @@ class PYCOSAT_Solver( object ) :
       # ////////////////////////////////////////////////////// #
 
       if CLOCKS_ONLY and not literal.startswith( "fact->clock(" ) :
+        logging.debug( "  ORIK RGG TO BOOLEAN FMLA : CLOCKS_ONLY and literal = " + literal + ", returning ''." )
         return ""
       else :
+        logging.debug( "  ORIK RGG TO BOOLEAN FMLA : returning (1) = " + literal )
         return literal # saves one set of parens
 
 
@@ -319,8 +335,16 @@ class PYCOSAT_Solver( object ) :
     this_fmla = this_fmla.replace( "_LBRKT_)", "_LBRKT__LPAR_" )
     this_fmla = this_fmla.replace( ",", "_COMMA_" )
 
-    logging.debug( "  ORIK RGG TO BOOLEAN FMLA : returning " + "(" + this_fmla + ")" )
-    return "(" + this_fmla + ")"
+    # conserve parentheses
+    if this_fmla.startswith( "(" ) and this_fmla.endswith( ")" ) :
+      pass
+    else :
+      this_fmla = "(" + this_fmla + ")"
+
+    logging.debug( "  ORIK RGG TO BOOLEAN FMLA : orik_rgg : " + str( orik_rgg ) )
+    logging.debug( "  ORIK RGG TO BOOLEAN FMLA : returning (2) " + this_fmla )
+    logging.debug( "=========================================================end" )
+    return this_fmla
 
 
   ##################
