@@ -111,7 +111,15 @@ class Test_pycosat( unittest.TestCase ) :
       print all_solns
       sys.exit( "hit print stop." )
 
-    expected_all_solns = [["clock(['a','c','1','2'])", "clock(['a','b','1','2'])"]]
+    expected_all_solns = [["clock(['a','c','1','2'])", "clock(['a','b','1','2'])"], \
+                          ["clock(['a','c','1','2'])"], \
+                          ["clock(['a','b','1','2'])"], \
+                          ["clock(['a','c','1','2'])", "clock(['a','b','1','2'])"], \
+                          ["clock(['a','c','1','2'])"], \
+                          ["clock(['a','b','1','2'])"], \
+                          ["clock(['a','c','1','2'])", "clock(['a','b','1','2'])"], \
+                          ["clock(['a','c','1','2'])"], \
+                          ["clock(['a','b','1','2'])"]]
     self.assertEqual( all_solns, expected_all_solns )
 
     # --------------------------------------------------------------- #
@@ -261,7 +269,10 @@ class Test_pycosat( unittest.TestCase ) :
       print all_solns
       sys.exit( "hit print stop." )
 
-    expected_all_solns = [["clock(['a','a','1','_'])", "clock(['c','c','1','_'])"], ["clock(['b','b','1','_'])"]]
+    expected_all_solns = [["clock(['c','c','1','_'])"], \
+                          ["clock(['c','c','1','_'])", "clock(['a','a','1','_'])"], \
+                          ["clock(['c','c','1','_'])"], \
+                          ["clock(['c','c','1','_'])", "clock(['b','b','1','_'])"]]
     self.assertEqual( all_solns, expected_all_solns )
 
     # --------------------------------------------------------------- #

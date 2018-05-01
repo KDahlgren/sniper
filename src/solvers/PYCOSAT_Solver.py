@@ -31,6 +31,7 @@ class PYCOSAT_Solver( object ) :
   def __init__( self, argDict, orik_rgg ) :
     self.argDict           = argDict
 
+    # need a way to remove duplicates
     self.boolean_fmla_list = self.orik_rgg_to_fmla_list( orik_rgg )
     self.cnf_fmla_list     = self.boolean_fmla_list_to_cnf_fmla_list()
 
@@ -38,10 +39,6 @@ class PYCOSAT_Solver( object ) :
                    str( self.boolean_fmla_list ) )
     logging.debug( "  PYCOSAT SOLVER __INIT__ : self.cnf_fmla_list = " + \
                    str( self.cnf_fmla_list ) )
-
-    #assert( self.cnf_fmla_list == ['clock_RPAR__RBRKT_a_COMMA_b_COMMA_1_COMMA_2_LBRKT__LPAR_ & clock_RPAR__RBRKT_a_COMMA_c_COMMA_1_COMMA_2_LBRKT__LPAR_'] )
-
-    #sys.exit( "blah" )
 
 
   ################
