@@ -269,10 +269,7 @@ class Test_pycosat( unittest.TestCase ) :
       print all_solns
       sys.exit( "hit print stop." )
 
-    expected_all_solns = [["clock(['c','c','1','_'])"], \
-                          ["clock(['c','c','1','_'])", "clock(['a','a','1','_'])"], \
-                          ["clock(['c','c','1','_'])"], \
-                          ["clock(['c','c','1','_'])", "clock(['b','b','1','_'])"]]
+    expected_all_solns = []
     self.assertEqual( all_solns, expected_all_solns )
 
     # --------------------------------------------------------------- #
