@@ -31,7 +31,23 @@ class PYCOSAT_Solver( object ) :
   def __init__( self, argDict, orik_rgg ) :
     self.argDict           = argDict
 
+    # --------------------------------------------------------------- #
+    # get configuration params
+
+    try :
+      self.POS_FACTS_ONLY = tools.getConfig( self.argDict[ "settings" ], \
+                                             "DEFAULT", \
+                                             "POS_FACTS_ONLY", \
+                                             bool )
+    except ConfigParser.NoOptionError :
+      self.POS_FACTS_ONLY = True
+      logging.warning( "WARNING : no 'POS_FACTS_ONLY' defined in 'DEFAULT' section of " + \
+                     self.argDict[ "settings" ] + "...running with POS_FACTS_ONLY==" + \
+                     str( self.POS_FACTS_ONLY ) )
+
+    # --------------------------------------------------------------- #
     # need a way to remove duplicates
+
     self.boolean_fmla_list = self.orik_rgg_to_fmla_list( orik_rgg )
     self.cnf_fmla_list     = self.boolean_fmla_list_to_cnf_fmla_list()
 
@@ -75,16 +91,22 @@ class PYCOSAT_Solver( object ) :
   #######################
   def make_soln_legible( self, a_soln, id_to_literal_map ) :
     logging.debug( "  MAKE SOLN LEGIBLE : a_soln = " + str( a_soln ) )
+    logging.debug( "  MAKE SOLN LEGIBLE : id_to_literal_map = " + str( id_to_literal_map )  )
     legible_soln_list_of_literals = []
     for lit_id in a_soln :
-      if lit_id > 0 : # do not include false literals in final soln
+      if not self.POS_FACTS_ONLY and lit_id < 0 :
+        lit_str = id_to_literal_map[ -1 * lit_id ]
+        lit_str = "_NOT_" + lit_str
+      elif lit_id < 0 :
+        continue
+      else :
         lit_str = id_to_literal_map[ lit_id ]
-        lit_str = lit_str.replace( "_RBRKT_", "['" )
-        lit_str = lit_str.replace( "_LBRKT_", "']" )
-        lit_str = lit_str.replace( "_RPAR_", "(" )
-        lit_str = lit_str.replace( "_LPAR_", ")" )
-        lit_str = lit_str.replace( "_COMMA_", "','" )
-        legible_soln_list_of_literals.append( lit_str )
+      lit_str = lit_str.replace( "_RBRKT_", "['" )
+      lit_str = lit_str.replace( "_LBRKT_", "']" )
+      lit_str = lit_str.replace( "_RPAR_", "(" )
+      lit_str = lit_str.replace( "_LPAR_", ")" )
+      lit_str = lit_str.replace( "_COMMA_", "','" )
+      legible_soln_list_of_literals.append( lit_str )
     return legible_soln_list_of_literals
 
 
@@ -103,7 +125,7 @@ class PYCOSAT_Solver( object ) :
       this_pycosat_disjunctive_clause = []
       for literal in disjuncted_literals :
         if "~" in literal :
-          this_pycosat_disjunctive_clause.append( "-" + literal_to_id_map[ literal.replace( "~", "" ) ] )
+          this_pycosat_disjunctive_clause.append( int( "-" + str( literal_to_id_map[ literal.replace( "~", "" ) ] ) ) )
         else :
           this_pycosat_disjunctive_clause.append( literal_to_id_map[ literal ] )
       pycosat_list_of_disjuncts.append( this_pycosat_disjunctive_clause )
@@ -304,8 +326,9 @@ class PYCOSAT_Solver( object ) :
       logging.debug( "  ORIK RGG TO BOOLEAN FMLA : using CLOCKS_ONLY = " + str( CLOCKS_ONLY ) )
       # ////////////////////////////////////////////////////// #
 
-      if CLOCKS_ONLY and not literal.startswith( "fact->clock(" ) :
-        logging.debug( "  ORIK RGG TO BOOLEAN FMLA : CLOCKS_ONLY and literal = " + literal + ", returning ''." )
+      if CLOCKS_ONLY and \
+         not ( literal.startswith( "fact->clock(" )  or \
+               literal.startswith( "fact->_NOT_clock(" ) ) :
         return ""
       else :
         logging.debug( "  ORIK RGG TO BOOLEAN FMLA : returning (1) = " + literal )
