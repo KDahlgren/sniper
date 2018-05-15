@@ -6,9 +6,11 @@
 #  IMPORTS  #
 #############
 # standard python packages
+import re
 import pycosat
-import ConfigParser, inspect, itertools, logging, os, string, sys, time
+import ConfigParser, copy, inspect, itertools, logging, os, string, sys, time
 import sympy
+import sniper_logic
 
 # ------------------------------------------------------ #
 # import sibling packages HERE!!!
@@ -28,8 +30,11 @@ class PYCOSAT_Solver( object ) :
   #  CONSTRUCTOR  #
   #################
   # assume orik rgg input format
-  def __init__( self, argDict, orik_rgg ) :
-    self.argDict           = argDict
+  def __init__( self, argDict={}, orik_rgg=None ) :
+    self.argDict = argDict
+
+    if argDict == {} and orik_rgg == None :
+      return
 
     # --------------------------------------------------------------- #
     # get configuration params
@@ -153,22 +158,55 @@ class PYCOSAT_Solver( object ) :
 
     # get list of string literals for input into sympy
     #sympy_symbol_list = self.get_list_of_literals( boolean_fmla )
+    #symbol_to_id_map, id_to_symbol_map = self.get_literal_maps( sympy_symbol_list )
+    #for symb in symbol_to_id_map :
+    #  logging.debug( symb + " => " + symbol_to_id_map[ symb ] )
+    #boolean_fmla_smaller = self.get_smaller_fmla( boolean_fmla, symbol_to_id_map )
+    #logging.debug( "  GET CNF : boolean_fmla_smaller = \n" + boolean_fmla_smaller )
+    #sys.exit( "make sure fmlas are simplified" )
 
     # pass to sympy?
     #cnf_fmla = self.to_cnf_sympy( boolean_fmla, sympy_symbol_list )
     cnf_fmla = self.to_cnf_sympy( boolean_fmla )
+    #cnf_fmla = self.to_cnf_sympy( boolean_fmla_smaller )
 
     logging.debug( "  GET CNF : cnf_fmla = " + str( cnf_fmla ) )
+    #sys.exit( "you did it! yay!" )
     return str( cnf_fmla )
+
+
+  ######################
+  #  GET SMALLER FMLA  #
+  ######################
+  def get_smaller_fmla( self, boolean_fmla, symbol_to_id_map ) :
+    for symb in symbol_to_id_map :
+      boolean_fmla = boolean_fmla.replace( symb, symbol_to_id_map[ symb ] )
+    return boolean_fmla
+  
+  
+  ######################
+  #  GET LITERAL MAPS  #
+  ######################
+  def get_literal_maps( self, sympy_symbol_list ) :
+    symbol_to_id_map = {}
+    counter = 0
+    for symb in sympy_symbol_list :
+      if not counter in symbol_to_id_map :
+        symbol_to_id_map[ symb ] = "l" + str( counter )
+      else :
+        raise ValueError( "uh oh. sympy_sybmol_list is not a set. aborting..." )
+      counter += 1
+    return symbol_to_id_map, {v: k for k, v in symbol_to_id_map.iteritems()}
 
 
   ##################
   #  TO CNF SYMPY  #
   ##################
   #def to_cnf_sympy( self, boolean_fmla_sympy, sympy_symbol_list ) :
-  def to_cnf_sympy( self, boolean_fmla_sympy ) :
-    #self.set_symbols( sympy_symbol_list )
-    return sympy.to_cnf( boolean_fmla_sympy, simplify=False )
+  def to_cnf_sympy( self, boolean_fmla_sympy, sympy_symbol_list=[] ) :
+    if len( sympy_symbol_list ) > 0 :
+      self.set_symbols( sympy_symbol_list )
+    return sympy.to_cnf( boolean_fmla_sympy )
 
 
   #################
@@ -224,11 +262,11 @@ class PYCOSAT_Solver( object ) :
     boolean_fmla = boolean_fmla.replace( "("  , ""           )       # remove all (
     boolean_fmla = boolean_fmla.replace( ")"  , ""           )       # remove all )
     boolean_fmla = boolean_fmla.replace( "~"  , ""           )       # remove all ~
-    boolean_fmla = boolean_fmla.replace( "&", "__SOMEOP__" )       # replace ops with some common string
-    boolean_fmla = boolean_fmla.replace( "|" , "__SOMEOP__" )       # replace ops with some common string
-    literals     = boolean_fmla.split( "__SOMEOP__" )                # get list of literal strings
-    literals     = set( literals )                                   # remove all duplicates
-    literals     = list( literals )                                  # transform back into list to reduce headaches 
+    boolean_fmla = boolean_fmla.replace( "&", "__SOMEOP__" )  # replace ops with some common string
+    boolean_fmla = boolean_fmla.replace( "|" , "__SOMEOP__" ) # replace ops with some common string
+    literals     = boolean_fmla.split( "__SOMEOP__" )         # get list of literal strings
+    literals     = set( literals )                            # remove all duplicates
+    literals     = list( literals ) # transform back into list to reduce headaches 
     return literals
 
 
@@ -242,7 +280,8 @@ class PYCOSAT_Solver( object ) :
 
     fmla_list = []
 
-    logging.debug( "  ORIK RGG TO FMLA LIST : len( orik_rgg.descendants ) = " + str( len( orik_rgg.descendants ) ) )
+    logging.debug( "  ORIK RGG TO FMLA LIST : len( orik_rgg.descendants ) = " )
+    logging.debug( str( len( orik_rgg.descendants ) ) )
     if orik_rgg.rootname == "FinalState" :
       for d in orik_rgg.descendants :
         logging.debug( "  ORIK RGG TO FMLA LIST : d = " + str( d ) )
@@ -355,16 +394,76 @@ class PYCOSAT_Solver( object ) :
     this_fmla = this_fmla.replace( "_LBRKT_)", "_LBRKT__LPAR_" )
     this_fmla = this_fmla.replace( ",", "_COMMA_" )
 
-    # conserve parentheses
-    if this_fmla.startswith( "(" ) and this_fmla.endswith( ")" ) :
-      pass
-    else :
-      this_fmla = "(" + this_fmla + ")"
+    # perform simplificatons
+    #while sniper_logic.still_idem_or_exprs( this_fmla ) or \
+    #      sniper_logic.still_idem_or_exprs( this_fmla ) or \
+    #      sniper_logic.still_absorption_exprs( this_fmla ) :
+    #  this_fmla = sniper_logic.conserve_parens( this_fmla )
+    #  this_fmla = sniper_logic.do_idempotent_law( this_fmla )
+    #  this_fmla = sniper_logic.do_absorption_law( this_fmla )
+
+    #if not self.is_literal( this_fmla ) and \
+    #   not self.is_binary( this_fmla ) and \
+    #   not self.safe_parens( this_fmla[1:-1] ) :
+    #  this_fmla = "(" + this_fmla + ")"
+    this_fmla = "(" + this_fmla + ")"
+
+    ## conserve parentheses
+    #if this_fmla.startswith( "(" ) and this_fmla.endswith( ")" ) :
+    #  pass
+    #else :
+    #  this_fmla = "(" + this_fmla + ")"
 
     logging.debug( "  ORIK RGG TO BOOLEAN FMLA : orik_rgg : " + str( orik_rgg ) )
     logging.debug( "  ORIK RGG TO BOOLEAN FMLA : returning (2) " + this_fmla )
     logging.debug( "=========================================================end" )
     return this_fmla
+
+
+  ###############
+  #  IS BINARY  #
+  ###############
+  def is_binary( self, fmla ) :
+    p = re.compile( "\w+" )
+    if fmla.startswith( "(" ) and \
+       fmla.endswith( ")" )   and \
+       len( p.findall( fmla ) ) == 2 :
+      return True
+    else :
+      return False
+
+
+  ################
+  #  IS LITERAL  #
+  ################
+  def is_literal( self, fmla ) :
+    if not "&" in fmla and not "|" in fmla :
+      return True
+    else :
+      return False
+
+
+  #################
+  #  SAFE PARENS  #
+  #################
+  def safe_parens( self, fmla ) :
+    logging.debug( "  SAFE PARENS : fmla = " + fmla )
+    num_open_parens = 0
+    num_closed_parens = 0
+    for char in fmla :
+      if char == "(" :
+        num_open_parens += 1
+      elif char == ")" :
+        num_closed_parens += 1
+      if not num_open_parens >= num_closed_parens :
+        logging.debug( "  SAFE PARENS : returning False (1)" )
+        return False
+    if num_open_parens < 1 :
+      logging.debug( "  SAFE PARENS : returning False (2)" )
+      return False
+    else :
+      logging.debug( "  SAFE PARENS : returning True" )
+      return True
 
 
   ##################

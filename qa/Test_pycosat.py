@@ -46,9 +46,86 @@ class Test_pycosat( unittest.TestCase ) :
 
   PRINT_STOP = False
 
+  ###########
+  #  KAFKA  #
+  ###########
+  @unittest.skip( "stalls at to_cnf." )
+  def test_kafka( self ) :
+
+    test_id = "kafka"
+    test_db = "./IR_" + test_id + ".db"
+
+    logging.debug( ">> RUNNING TEST '" + test_id + "' <<<" )
+
+    # --------------------------------------------------------------- #
+    # set up test
+
+    if os.path.exists( test_db ) :
+      os.remove( test_db )
+
+    IRDB   = sqlite3.connect( test_db )
+    cursor = IRDB.cursor()
+
+    dedt.createDedalusIRTables(cursor)
+    dedt.globalCounterReset()
+
+    # --------------------------------------------------------------- #
+    # specify input file paths
+
+    inputfile = "./dedalus_drivers/kafka_driver.ded"
+
+    # --------------------------------------------------------------- #
+    # get argDict
+
+    argDict = self.get_arg_dict( inputfile )
+    argDict[ "nodes" ]    = [ "a", "b", "C", "Z" ]
+    argDict[ "EOT" ]      = 7
+    argDict[ "EFF" ]      = 4
+    argDict[ 'settings' ] = "./settings_files/settings_kafka.ini"
+
+    if not os.path.exists( argDict[ "data_save_path"] ) :
+      cmd = "mkdir " + argDict[ "data_save_path" ]
+      logging.debug( "  TEST SIMPLOG : running cmd = " + cmd )
+      os.system( cmd )
+
+    # --------------------------------------------------------------- #
+    # generate orik rgg
+
+    orik_rgg = self.get_orik_rgg( argDict, \
+                                  inputfile, \
+                                  cursor, \
+                                  test_id )
+
+    # --------------------------------------------------------------- #
+    # generate fault hypotheses
+
+    pycosat_solver = PYCOSAT_Solver.PYCOSAT_Solver( argDict, orik_rgg )
+
+    logging.debug( "  KAFKA : cnf_fmla_list :" )
+    for f in pycosat_solver.cnf_fmla_list :
+      logging.debug( f )
+
+    # get all the solns for all the fmlas for the provenance tree
+    all_solns = self.get_all_solns( pycosat_solver )
+
+    if self.PRINT_STOP :
+      print all_solns
+      sys.exit( "hit print stop." )
+
+    expected_all_solns = []
+    self.assertEqual( all_solns, expected_all_solns )
+
+    # --------------------------------------------------------------- #
+    # clean up yo mess
+
+    if os.path.exists( test_db ) :
+      os.remove( test_db )
+
+
   ################
   #  SIMPLOG DM  #
   ################
+  #@unittest.skip( "works." )
   def test_simplog_dm( self ) :
 
     test_id = "simplog_dm"
@@ -111,15 +188,23 @@ class Test_pycosat( unittest.TestCase ) :
       print all_solns
       sys.exit( "hit print stop." )
 
-    expected_all_solns = [["clock(['a','c','1','2'])", "clock(['a','b','1','2'])"], \
-                          ["clock(['a','c','1','2'])"], \
-                          ["clock(['a','b','1','2'])"], \
-                          ["clock(['a','c','1','2'])", "clock(['a','b','1','2'])"], \
-                          ["clock(['a','c','1','2'])"], \
-                          ["clock(['a','b','1','2'])"], \
-                          ["clock(['a','c','1','2'])", "clock(['a','b','1','2'])"], \
-                          ["clock(['a','c','1','2'])"], \
-                          ["clock(['a','b','1','2'])"]]
+    expected_all_solns = [ ["clock(['a','b','1','2'])"], \
+                           ["clock(['a','c','1','2'])", "clock(['a','b','1','2'])"], \
+                           ["clock(['a','c','1','2'])", "clock(['a','b','1','2'])"], \
+                           ["clock(['a','c','1','2'])"], \
+                           ["clock(['a','b','1','2'])"], \
+                           ["clock(['a','c','1','2'])"], \
+                           ["clock(['a','c','1','2'])", "clock(['a','b','1','2'])"]]
+
+    #expected_all_solns = [["clock(['a','c','1','2'])", "clock(['a','b','1','2'])"], \
+    #                      ["clock(['a','c','1','2'])"], \
+    #                      ["clock(['a','b','1','2'])"], \
+    #                      ["clock(['a','c','1','2'])", "clock(['a','b','1','2'])"], \
+    #                      ["clock(['a','c','1','2'])"], \
+    #                      ["clock(['a','b','1','2'])"], \
+    #                      ["clock(['a','c','1','2'])", "clock(['a','b','1','2'])"], \
+    #                      ["clock(['a','c','1','2'])"], \
+    #                      ["clock(['a','b','1','2'])"]]
     self.assertEqual( all_solns, expected_all_solns )
 
     # --------------------------------------------------------------- #
@@ -132,6 +217,7 @@ class Test_pycosat( unittest.TestCase ) :
   #############
   #  SIMPLOG  #
   #############
+  #@unittest.skip( "works." )
   def test_simplog( self ) :
 
     test_id = "simplog"
@@ -207,6 +293,7 @@ class Test_pycosat( unittest.TestCase ) :
   ###############
   #  EXAMPLE 1  #
   ###############
+  #@unittest.skip( "works." )
   def test_example_1( self ) :
 
     test_id = "example_1"

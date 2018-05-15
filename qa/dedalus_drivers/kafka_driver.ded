@@ -1,0 +1,2 @@
+include "../test_files/examples_ft/kafka.ded" ;
+timer_cancel( "somestring", "somestring" )@1 ;

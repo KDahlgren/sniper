@@ -5,6 +5,7 @@
 **/complete_dedalus_program.ded
 **/*.png
 **/data/
+**/*.db*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
