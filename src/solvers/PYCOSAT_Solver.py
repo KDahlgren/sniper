@@ -406,13 +406,12 @@ class PYCOSAT_Solver( object ) :
     #   not self.is_binary( this_fmla ) and \
     #   not self.safe_parens( this_fmla[1:-1] ) :
     #  this_fmla = "(" + this_fmla + ")"
-    this_fmla = "(" + this_fmla + ")"
 
-    ## conserve parentheses
-    #if this_fmla.startswith( "(" ) and this_fmla.endswith( ")" ) :
-    #  pass
-    #else :
-    #  this_fmla = "(" + this_fmla + ")"
+    # conserve parentheses
+    if this_fmla.startswith( "(" ) and this_fmla.endswith( ")" ) :
+      pass
+    else :
+      this_fmla = "(" + this_fmla + ")"
 
     logging.debug( "  ORIK RGG TO BOOLEAN FMLA : orik_rgg : " + str( orik_rgg ) )
     logging.debug( "  ORIK RGG TO BOOLEAN FMLA : returning (2) " + this_fmla )
