@@ -78,7 +78,7 @@ class Test_pycosat( unittest.TestCase ) :
     # get argDict
 
     argDict = self.get_arg_dict( inputfile )
-    argDict[ "nodes" ]    = [ "a", "b", "C", "Z" ]
+    argDict[ "nodes" ]    = [ "a", "b", "c", "C", "Z" ]
     argDict[ "EOT" ]      = 7
     argDict[ "EFF" ]      = 4
     argDict[ 'settings' ] = "./settings_files/settings_kafka.ini"

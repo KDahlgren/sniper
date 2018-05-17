@@ -411,7 +411,11 @@ class PYCOSAT_Solver( object ) :
     if this_fmla.startswith( "(" ) and this_fmla.endswith( ")" ) :
       pass
     else :
-      this_fmla = "(" + this_fmla + ")"
+      #this_fmla = "(" + this_fmla + ")"
+      if this_fmla == "" :
+        this_fmla = "(" + this_fmla + ")"
+      else :
+        this_fmla = "(" + str( sympy.simplify( this_fmla ) ) + ")"
 
     logging.debug( "  ORIK RGG TO BOOLEAN FMLA : orik_rgg : " + str( orik_rgg ) )
     logging.debug( "  ORIK RGG TO BOOLEAN FMLA : returning (2) " + this_fmla )
