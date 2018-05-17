@@ -99,10 +99,10 @@ class PYCOSAT_Solver( object ) :
     logging.debug( "  MAKE SOLN LEGIBLE : id_to_literal_map = " + str( id_to_literal_map )  )
     legible_soln_list_of_literals = []
     for lit_id in a_soln :
-      if not self.POS_FACTS_ONLY and lit_id < 0 :
-        lit_str = id_to_literal_map[ -1 * lit_id ]
-        lit_str = "_NOT_" + lit_str
-      elif lit_id < 0 :
+      #if not self.POS_FACTS_ONLY and lit_id < 0 :
+      #  lit_str = id_to_literal_map[ -1 * lit_id ]
+      #  lit_str = "_NOT_" + lit_str
+      if lit_id < 0 : # do not include literals mapped to false in the solution
         continue
       else :
         lit_str = id_to_literal_map[ lit_id ]
