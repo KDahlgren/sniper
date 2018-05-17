@@ -71,11 +71,11 @@ class PYCOSAT_Solver( object ) :
 
     self.list_of_literals  = self.get_list_of_literals( cnf_fmla )
 
-    # from https://stackoverflow.com/questions/36459969/python-convert-list-to-dictionary-with-indexes?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+    # https://stackoverflow.com/a/36460020
     # pycosat can't handle literal ids of 0
     literal_to_id_map = { k : v+1 for v, k in enumerate( self.list_of_literals ) }
 
-    # from https://stackoverflow.com/questions/483666/python-reverse-invert-a-mapping
+    # from https://stackoverflow.com/a/483833
     id_to_literal_map = { v : k for k, v in literal_to_id_map.iteritems() }
 
     # convert to pycosat cnf fmla
@@ -411,7 +411,11 @@ class PYCOSAT_Solver( object ) :
     if this_fmla.startswith( "(" ) and this_fmla.endswith( ")" ) :
       pass
     else :
-      this_fmla = "(" + this_fmla + ")"
+      #this_fmla = "(" + this_fmla + ")"
+      if this_fmla == "" :
+        this_fmla = "(" + this_fmla + ")"
+      else :
+        this_fmla = "(" + str( sympy.simplify( this_fmla ) ) + ")"
 
     logging.debug( "  ORIK RGG TO BOOLEAN FMLA : orik_rgg : " + str( orik_rgg ) )
     logging.debug( "  ORIK RGG TO BOOLEAN FMLA : returning (2) " + this_fmla )

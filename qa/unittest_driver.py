@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import logging, os, sys, unittest
-import Test_pycosat, Test_sniper_logic
+import Test_pycosat, Test_sniper_logic, Test_z3
 
 #####################
 #  UNITTEST DRIVER  #
@@ -21,6 +21,10 @@ def unittest_driver() :
 
   # run Test_pycosat tests
   suite = unittest.TestLoader().loadTestsFromTestCase( Test_pycosat.Test_pycosat )
+  unittest.TextTestRunner( verbosity=2, buffer=True ).run( suite )
+
+  # run Test_z3 tests
+  suite = unittest.TestLoader().loadTestsFromTestCase( Test_z3.Test_z3 )
   unittest.TextTestRunner( verbosity=2, buffer=True ).run( suite )
 
   # run Test_sniper_logic tests
