@@ -86,10 +86,8 @@ class Test_z3( unittest.TestCase ) :
     argDict[ "settings" ] = "./settings_files/settings_dm_allow_not_clocks.ini"
     argDict[ "data_save_path" ] = "./data/" + test_id + "/"
 
-    if not os.path.exists( argDict[ "data_save_path"] ) :
-      cmd = "mkdir " + argDict[ "data_save_path" ]
-      logging.debug( "  TEST " + test_id.upper() + " : running cmd = " + cmd )
-      os.system( cmd )
+    if not os.path.exists( argDict[ "data_save_path" ] ) :
+      self.make_data_dir( argDict[ "data_save_path" ], test_id )
 
     # --------------------------------------------------------------- #
     # generate orik rgg
@@ -181,9 +179,7 @@ class Test_z3( unittest.TestCase ) :
     argDict[ "data_save_path" ] = "./data/" + test_id + "/"
 
     if not os.path.exists( argDict[ "data_save_path"] ) :
-      cmd = "mkdir " + argDict[ "data_save_path" ]
-      logging.debug( "  TEST " + test_id.upper() + " : running cmd = " + cmd )
-      os.system( cmd )
+      self.make_data_dir( argDict[ "data_save_path" ], test_id )
 
     # --------------------------------------------------------------- #
     # generate orik rgg
@@ -270,9 +266,7 @@ class Test_z3( unittest.TestCase ) :
     argDict[ "data_save_path" ] = "./data/" + test_id + "/"
 
     if not os.path.exists( argDict[ "data_save_path"] ) :
-      cmd = "mkdir " + argDict[ "data_save_path" ]
-      logging.debug( "  TEST " + test_id.upper() + " : running cmd = " + cmd )
-      os.system( cmd )
+      self.make_data_dir( argDict[ "data_save_path" ], test_id )
 
     # --------------------------------------------------------------- #
     # generate orik rgg
@@ -349,9 +343,7 @@ class Test_z3( unittest.TestCase ) :
     argDict[ "data_save_path" ] = "./data/" + test_id + "/"
 
     if not os.path.exists( argDict[ "data_save_path"] ) :
-      cmd = "mkdir " + argDict[ "data_save_path" ]
-      logging.debug( "  TEST " + test_id.upper() + " : running cmd = " + cmd )
-      os.system( cmd )
+      self.make_data_dir( argDict[ "data_save_path" ], test_id )
 
     # --------------------------------------------------------------- #
     # generate orik rgg
@@ -433,9 +425,7 @@ class Test_z3( unittest.TestCase ) :
     argDict[ "data_save_path" ] = "./data/" + test_id + "/"
 
     if not os.path.exists( argDict[ "data_save_path"] ) :
-      cmd = "mkdir " + argDict[ "data_save_path" ]
-      logging.debug( "  TEST " + test_id.upper() + " : running cmd = " + cmd )
-      os.system( cmd )
+      self.make_data_dir( argDict[ "data_save_path" ], test_id )
 
     # --------------------------------------------------------------- #
     # generate orik rgg
@@ -512,9 +502,7 @@ class Test_z3( unittest.TestCase ) :
     argDict[ "data_save_path" ] = "./data/" + test_id + "/"
 
     if not os.path.exists( argDict[ "data_save_path"] ) :
-      cmd = "mkdir " + argDict[ "data_save_path" ]
-      logging.debug( "  TEST " + test_id.upper() + " : running cmd = " + cmd )
-      os.system( cmd )
+      self.make_data_dir( argDict[ "data_save_path" ], test_id )
 
     # --------------------------------------------------------------- #
     # generate orik rgg
@@ -593,9 +581,7 @@ class Test_z3( unittest.TestCase ) :
     argDict[ "data_save_path" ] = "./data/" + test_id + "/"
 
     if not os.path.exists( argDict[ "data_save_path"] ) :
-      cmd = "mkdir " + argDict[ "data_save_path" ]
-      logging.debug( "  TEST " + test_id.upper() + " : running cmd = " + cmd )
-      os.system( cmd )
+      self.make_data_dir( argDict[ "data_save_path" ], test_id )
 
     # --------------------------------------------------------------- #
     # generate orik rgg
@@ -676,6 +662,27 @@ class Test_z3( unittest.TestCase ) :
     logging.debug( "  GET ORIK RGG : running process..." )
 
     return orik_rgg
+
+
+  ###################
+  #  MAKE DATA DIR  #
+  ###################
+  def make_data_dir( self, data_save_path, test_id ) :
+    logging.debug( "  TEST " + test_id.upper() + \
+                   " : data save path not found : " + \
+                   data_save_path )
+
+    dir_list = data_save_path.split( "/" )
+    complete_str = "./"
+    for this_dir in dir_list :
+      if this_dir == "./" :
+        complete_str += this_dir
+      else :
+        complete_str += this_dir + "/"
+        if not os.path.exists( complete_str ) :
+          cmd = "mkdir " + complete_str
+          logging.debug( "  TEST " + test_id.upper() + " : running cmd = " + cmd )
+          os.system( cmd )
 
 
   ##################
