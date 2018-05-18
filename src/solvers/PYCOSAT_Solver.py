@@ -361,6 +361,9 @@ class PYCOSAT_Solver( object ) :
     elif orik_rgg.treeType == "fact" :
       literal = str( orik_rgg ).translate( None, string.whitespace )
 
+      # remove fact-> references
+      literal = literal.replace( "fact->", "" )
+
       # this check is probably superfluous:
       # ////////////////////////////////////////////////////// #
       # check whether to include only clock facts in fmlas
@@ -375,28 +378,21 @@ class PYCOSAT_Solver( object ) :
       # ////////////////////////////////////////////////////// #
 
       if CLOCKS_ONLY and \
-         not ( literal.startswith( "fact->clock(" )  or \
-               literal.startswith( "fact->_NOT_clock(" ) ) :
+         not ( literal.startswith( "clock(" )  or \
+               literal.startswith( "_NOT_clock(" ) ) :
         return ""
       else :
         if "_NOT_" in literal :
-          this_fmla = "~" + literal
+          literal = "(~" + literal + ")"
         logging.debug( "  ORIK RGG TO BOOLEAN FMLA : returning (1) = " + literal )
         return literal # saves one set of parens
-
 
     # --------------------------------------------------------- #
     # post-process string into correct syntax
 
-    # replace negations
-    #this_fmla = this_fmla.replace( "_NOT_", "~" )
-
     # remove all single and double quotes
     this_fmla = this_fmla.replace( "'", "")
     this_fmla = this_fmla.replace( '"', "")
-
-    # remove fact-> references
-    this_fmla = this_fmla.replace( "fact->", "" )
 
     # replace parens, brackets, and commas
     this_fmla = this_fmla.replace( "[", "_RBRKT_" )
@@ -404,19 +400,6 @@ class PYCOSAT_Solver( object ) :
     this_fmla = this_fmla.replace( "(_RBRKT_", "_RPAR__RBRKT_" )
     this_fmla = this_fmla.replace( "_LBRKT_)", "_LBRKT__LPAR_" )
     this_fmla = this_fmla.replace( ",", "_COMMA_" )
-
-    # perform simplificatons
-    #while sniper_logic.still_idem_or_exprs( this_fmla ) or \
-    #      sniper_logic.still_idem_or_exprs( this_fmla ) or \
-    #      sniper_logic.still_absorption_exprs( this_fmla ) :
-    #  this_fmla = sniper_logic.conserve_parens( this_fmla )
-    #  this_fmla = sniper_logic.do_idempotent_law( this_fmla )
-    #  this_fmla = sniper_logic.do_absorption_law( this_fmla )
-
-    #if not self.is_literal( this_fmla ) and \
-    #   not self.is_binary( this_fmla ) and \
-    #   not self.safe_parens( this_fmla[1:-1] ) :
-    #  this_fmla = "(" + this_fmla + ")"
 
     # conserve parentheses
     if this_fmla.startswith( "(" ) and this_fmla.endswith( ")" ) :
