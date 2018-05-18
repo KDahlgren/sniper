@@ -370,6 +370,8 @@ class PYCOSAT_Solver( object ) :
                literal.startswith( "fact->_NOT_clock(" ) ) :
         return ""
       else :
+        if "_NOT_" in literal :
+          this_fmla = "~" + literal
         logging.debug( "  ORIK RGG TO BOOLEAN FMLA : returning (1) = " + literal )
         return literal # saves one set of parens
 
@@ -378,7 +380,7 @@ class PYCOSAT_Solver( object ) :
     # post-process string into correct syntax
 
     # replace negations
-    this_fmla = this_fmla.replace( "_NOT_", "~" )
+    #this_fmla = this_fmla.replace( "_NOT_", "~" )
 
     # remove all single and double quotes
     this_fmla = this_fmla.replace( "'", "")
