@@ -329,7 +329,11 @@ class PYCOSAT_Solver( object ) :
         curr_fmla = self.orik_rgg_to_boolean_fmla( orik_rgg.all_descendant_objs[ i ] )
         if not curr_fmla == "" and not curr_fmla == "()" :
           if i > 0 :
-            this_fmla += "|"
+            #this_fmla += "|" #orig
+
+            # the following makes more sense. breaking this goal
+            # requires failing all of the rules.
+            this_fmla += "&"
           this_fmla += curr_fmla
 
     # --------------------------------------------------------- #
@@ -343,7 +347,12 @@ class PYCOSAT_Solver( object ) :
         curr_fmla = self.orik_rgg_to_boolean_fmla( orik_rgg.all_descendant_objs[ i ] )
         if not curr_fmla == "" and not curr_fmla == "()" :
           if not this_fmla == "" and i > 0 :
-            this_fmla += "&"
+            #this_fmla += "&" #orig
+
+            # the following makes more sense. breaking this rule 
+            # requires failing any of the subgoals.
+            this_fmla += "|"
+
           this_fmla += curr_fmla
 
     # --------------------------------------------------------- #

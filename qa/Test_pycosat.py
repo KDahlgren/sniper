@@ -188,15 +188,9 @@ class Test_pycosat( unittest.TestCase ) :
       print all_solns
       sys.exit( "hit print stop." )
 
-    expected_all_solns = [["clock(['a','c','1','2'])", "clock(['a','b','1','2'])"], \
-                          ["clock(['a','c','1','2'])"], \
-                          ["clock(['a','b','1','2'])"], \
+    expected_all_solns = [["clock(['a','b','1','2'])"], \
                           ["clock(['a','c','1','2'])", "clock(['a','b','1','2'])"], \
-                          ["clock(['a','c','1','2'])"], \
-                          ["clock(['a','b','1','2'])"], \
-                          ["clock(['a','c','1','2'])", "clock(['a','b','1','2'])"], \
-                          ["clock(['a','c','1','2'])"], \
-                          ["clock(['a','b','1','2'])"]]
+                          ["clock(['a','c','1','2'])"]]
 
     self.assertEqual( all_solns, expected_all_solns )
 
@@ -384,7 +378,8 @@ class Test_pycosat( unittest.TestCase ) :
         logging.debug( "  GET ALL SOLNS : running on fmla_id = " + str( fmla_id ) + ", soln_id = " + str( soln_id ) )
         a_new_soln = pycosat_solver.get_a_soln( curr_fmla, soln_id )
         soln_id   += 1 
-        all_solns.append( a_new_soln )
+        if not a_new_soln in all_solns :
+          all_solns.append( a_new_soln )
       except IndexError :
         logging.debug( "  GET ALL SOLNS : no more solns to explore wrt to this formula. incrementing to next fmla.")
         fmla_id += 1 # increment to the next fmla
