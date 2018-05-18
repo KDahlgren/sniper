@@ -411,7 +411,7 @@ class Z3_Solver( object ) :
       else :
         all_solns.append( new_soln )
       if COUNTER > 50 :
-        sys.exit( "blah" )
+        sys.exit( "hit over " + str( COUNTER ) + " solns. you sure bro? aborting..." )
       COUNTER += 1
     return all_solns
 

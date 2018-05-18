@@ -442,6 +442,7 @@ class Test_z3( unittest.TestCase ) :
     a_soln    = z3_solver.get_a_soln()
 
     if self.PRINT_STOP :
+      print "PRINTING A SOLN:"
       print a_soln
       sys.exit( "hit print stop." )
 

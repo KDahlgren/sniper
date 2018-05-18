@@ -46,6 +46,84 @@ class Test_pycosat( unittest.TestCase ) :
 
   PRINT_STOP = False
 
+  #############
+  #  ASYNC 1  #
+  #############
+  @unittest.skip( "too many to check all solns." )
+  def test_async_1( self ) :
+
+    test_id              = "pycosat_async_1"
+    test_input_file_name = "async_1_driver"
+    test_db              = "./IR_" + test_id + ".db"
+
+    logging.debug( ">> RUNNING TEST '" + test_id + "' <<<" )
+
+    # --------------------------------------------------------------- #
+    # set up test
+
+    if os.path.exists( test_db ) :
+      os.remove( test_db )
+
+    IRDB   = sqlite3.connect( test_db )
+    cursor = IRDB.cursor()
+
+    dedt.createDedalusIRTables(cursor)
+    dedt.globalCounterReset()
+
+    # --------------------------------------------------------------- #
+    # specify input file paths
+
+    inputfile = "./dedalus_drivers/" + test_input_file_name + ".ded"
+
+    # --------------------------------------------------------------- #
+    # get argDict
+
+    argDict = self.get_arg_dict( inputfile )
+    argDict[ "nodes" ]    = [ "Node1", "Node2", "Server" ]
+    argDict[ "EOT" ]      = 3
+    argDict[ "EFF" ]      = 0
+    argDict[ 'settings' ] = "./settings_files/settings_dm_allow_not_clocks.ini"
+
+    if not os.path.exists( argDict[ "data_save_path"] ) :
+      cmd = "mkdir " + argDict[ "data_save_path" ]
+      logging.debug( "  TEST " + test_id.upper() + " : running cmd = " + cmd )
+      os.system( cmd )
+
+    # --------------------------------------------------------------- #
+    # generate orik rgg
+
+    orik_rgg = self.get_orik_rgg( argDict, \
+                                  inputfile, \
+                                  cursor, \
+                                  test_id )
+
+    # --------------------------------------------------------------- #
+    # generate fault hypotheses
+
+    pycosat_solver = PYCOSAT_Solver.PYCOSAT_Solver( argDict, orik_rgg )
+
+    logging.debug( "  TEST " + test_id.upper() + " : cnf_fmla_list :" )
+    for f in pycosat_solver.cnf_fmla_list :
+      logging.debug( f )
+
+    # get all the solns for all the fmlas for the provenance tree
+    all_solns = self.get_all_solns( pycosat_solver )
+
+    if self.PRINT_STOP :
+      print "PRINTING ALL SOLNS:"
+      print all_solns
+      sys.exit( "hit print stop." )
+
+    expected_all_solns = []
+    self.assertEqual( all_solns, expected_all_solns )
+
+    # --------------------------------------------------------------- #
+    # clean up yo mess
+
+    if os.path.exists( test_db ) :
+      os.remove( test_db )
+
+
   #################
   #  BADFAILOVER  #
   #################
@@ -110,6 +188,7 @@ class Test_pycosat( unittest.TestCase ) :
     all_solns = self.get_all_solns( pycosat_solver )
 
     if self.PRINT_STOP :
+      print "PRINTING ALL SOLNS:"
       print all_solns
       sys.exit( "hit print stop." )
 
