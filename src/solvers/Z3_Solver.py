@@ -26,7 +26,8 @@ class Z3_Solver( object ) :
   #################
   # assume orik rgg input format
   def __init__( self, argDict={}, orik_rgg=None ) :
-    self.argDict = argDict
+    self.argDict     = argDict
+    self.solver_type = "z3"
 
     if argDict == {} and orik_rgg == None :
       return
@@ -93,6 +94,7 @@ class Z3_Solver( object ) :
 
     self.s                         = z3.Solver()
     self.fmla_id                   = 0
+    self.prev_fmla_id              = self.fmla_id
     self.set_symbols_statement     = None
     self.constraint_statement_list = []
     self.previously_found_solns    = []
@@ -201,63 +203,77 @@ class Z3_Solver( object ) :
     logging.debug( "  GET A SOLN : fmla_id        = " + str( fmla_id ) )
     logging.debug( "  GET A SOLN : add_constraint = " + str( add_constraint ) )
 
-    # define fmla to solve
-    this_fmla = self.boolean_fmla_list[ fmla_id ]
-    logging.debug( "  GET A SOLN : solving fmla '" + this_fmla + "'" )
+    added_a_constraint = False
+    while True : # loop until you find a non-empty soln_array
 
-    symbol_list = self.get_list_of_literals( this_fmla )
-    if self.set_symbols_statement == None :
-      self.set_symbols_statement = self.set_z3_symbols( symbol_list )
-      exec( self.set_symbols_statement )
-
-    # ----------------------------------------------------------------------- #
-    #                            RESET SOLVER
-
-    # huge time sink when run every iteration of get_a_soln!
-    self.reset_solver( this_fmla, symbol_list )
-
-    # ----------------------------------------------------------------------- #
-
-    self.s.check()
-    logging.debug( "  GET A SOLN : self.s.check() = " + str( self.s.check() ) )
-    logging.debug( "  GET A SOLN : self.s.model() = " + str( self.s.model() ) )
-
-    # collect solutions
-    constraint_list = ""
-    soln_array          = []
-    for i in range( 0, len( symbol_list ) ) :
-      lit = symbol_list[ i ]
-
-      # need to convert literals into z3 Boolean objects for this to work.
-      z3_lit = eval( "z3.Bool('" + lit + "')" )
-
-      logging.debug( "  GET A SOLN : self.s.model()[ " + str( z3_lit ) + " ] = " + \
-                     str( self.s.model()[ z3_lit ] ) )
-
-      if self.s.model()[ z3_lit ] == True :
-        soln_array.append( self.make_legible( self.id_to_literal_map[ lit ] ) )
-
-      # handle constraints for non-literal fmlas
-      if not self.is_literal( this_fmla ) :
-        # define Trues and Falses
-        if self.s.model()[ z3_lit ] == None :
-          constraint_list += lit + " != " + str( False )
-        else :
-          constraint_list += lit + " != " + str( self.s.model()[ z3_lit ] )
+      # define fmla to solve
+      this_fmla = self.boolean_fmla_list[ fmla_id ]
+      logging.debug( "  GET A SOLN : solving fmla '" + this_fmla + "'" )
   
-        # add commas
-        if i < len( symbol_list )-1 :
-          constraint_list += ", "
+      symbol_list = self.get_list_of_literals( this_fmla )
+      if self.set_symbols_statement == None :
+        self.set_symbols_statement = self.set_z3_symbols( symbol_list )
+        exec( self.set_symbols_statement )
+  
+      # ----------------------------------------------------------------------- #
+      #                            RESET SOLVER
 
-      # handle constraints for literal fmlas
-      else :
-        constraint_list = "False"
+      if self.fmla_id == 0 :
+        self.reset_solver( this_fmla, symbol_list )  
 
-    # add to list of previously considered solns
-    # ex. s.add( Or(a != s.model()[a], b != s.model()[b]))
-    #  says "in the future, make sure a and b never match this combination of values."
-    if add_constraint :
-      self.save_soln_elimination_constraints( constraint_list )
+      if self.fmla_id > self.prev_fmla_id :
+        #self.fmla_id      += 1
+        self.prev_fmla_id = self.fmla_id
+        self.reset_solver( this_fmla, symbol_list )
+  
+      # ----------------------------------------------------------------------- #
+  
+      self.s.check()
+      logging.debug( "  GET A SOLN : self.s.check() = " + str( self.s.check() ) )
+      logging.debug( "  GET A SOLN : self.s.model() = " + str( self.s.model() ) )
+  
+      # collect solutions
+      constraint_list = ""
+      soln_array          = []
+      for i in range( 0, len( symbol_list ) ) :
+        lit = symbol_list[ i ]
+  
+        # need to convert literals into z3 Boolean objects for this to work.
+        z3_lit = eval( "z3.Bool('" + lit + "')" )
+  
+        logging.debug( "  GET A SOLN : self.s.model()[ " + str( z3_lit ) + " ] = " + \
+                       str( self.s.model()[ z3_lit ] ) )
+  
+        if self.s.model()[ z3_lit ] == True :
+          soln_array.append( self.make_legible( self.id_to_literal_map[ lit ] ) )
+  
+        # handle constraints for non-literal fmlas
+        if not self.is_literal( this_fmla ) :
+          # define Trues and Falses
+          if self.s.model()[ z3_lit ] == None :
+            constraint_list += lit + " != " + str( False )
+          else :
+            constraint_list += lit + " != " + str( self.s.model()[ z3_lit ] )
+    
+          # add commas
+          if i < len( symbol_list )-1 :
+            constraint_list += ", "
+  
+        # handle constraints for literal fmlas
+        else :
+          constraint_list = "False"
+  
+      # add to list of previously considered solns
+      # ex. s.add( Or(a != s.model()[a], b != s.model()[b]))
+      #  says "in the future, make sure a and b never match this combination of values."
+      if len( soln_array ) < 1 or add_constraint :
+        self.save_soln_elimination_constraints( constraint_list )
+        added_a_constraint = True
+      elif added_a_constraint :
+        self.reset_solver( this_fmla, symbol_list )
+
+      if len( soln_array ) > 0 :
+        break
 
     logging.debug( "  GET A SOLN : soln_array : " + str( soln_array ) )
     return soln_array
@@ -382,6 +398,7 @@ class Z3_Solver( object ) :
   
         except IndexError :
           # break the loop 'cause you ran out of fmlas
+          logging.debug( "  GET NEXT SOLN : no more fmlas to check." )
           return "no more fmlas to check."
 
     # otherwise, get the next solution for this formula.
@@ -410,8 +427,8 @@ class Z3_Solver( object ) :
         break
       else :
         all_solns.append( new_soln )
-      if COUNTER > 50 :
-        sys.exit( "hit over " + str( COUNTER ) + " solns. you sure bro? aborting..." )
+      #if COUNTER > 50 :
+      #  sys.exit( "hit over " + str( COUNTER ) + " solns. you sure bro? aborting..." )
       COUNTER += 1
     return all_solns
 
@@ -478,7 +495,8 @@ class Z3_Solver( object ) :
             prev_integrated.append( curr_fmla )
             this_fmla += curr_fmla
       if "," in this_fmla :
-        this_fmla = "z3.Or(" + this_fmla + ")"
+        #this_fmla = "z3.Or(" + this_fmla + ")" #orig
+        this_fmla = "z3.And(" + this_fmla + ")"
 
     # --------------------------------------------------------- #
     # CASE root is a rule : AND all descendants
@@ -493,7 +511,8 @@ class Z3_Solver( object ) :
             prev_integrated.append( curr_fmla )
             this_fmla += curr_fmla
       if "," in this_fmla :
-        this_fmla = "z3.And(" + this_fmla + ")"
+        #this_fmla = "z3.And(" + this_fmla + ")"  #orig
+        this_fmla = "z3.Or(" + this_fmla + ")"
 
     # --------------------------------------------------------- #
     # CASE root is a fact : return to string

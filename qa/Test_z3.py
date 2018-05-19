@@ -107,29 +107,10 @@ class Test_z3( unittest.TestCase ) :
       print a_soln
       sys.exit( "hit print stop." )
 
-    expected_soln = ["clock(['b','a','2','3'])", \
-                     "clock(['b','a','5','6'])", \
-                     "clock(['b','c','5','6'])", \
-                     "clock(['a','c','4','5'])", \
-                     "clock(['c','a','4','5'])", \
-                     "clock(['c','a','2','3'])", \
-                     "clock(['a','b','4','5'])", \
-                     "clock(['c','b','3','4'])", \
-                     "clock(['c','b','5','6'])", \
-                     "clock(['a','b','3','4'])", \
-                     "clock(['a','c','5','6'])", \
+    expected_soln = ["clock(['a','b','1','2'])", \
                      "clock(['a','c','1','2'])", \
-                     "clock(['c','a','3','4'])", \
-                     "clock(['b','a','3','4'])", \
-                     "clock(['a','b','5','6'])", \
-                     "clock(['a','c','3','4'])", \
-                     "clock(['c','b','4','5'])", \
-                     "clock(['b','c','2','3'])", \
-                     "clock(['b','c','4','5'])", \
-                     "clock(['b','c','3','4'])", \
-                     "clock(['c','a','5','6'])", \
-                     "clock(['b','a','4','5'])", \
-                     "clock(['c','b','2','3'])"]
+                     "clock(['a','b','2','3'])", \
+                     "clock(['a','c','2','3'])"]
     self.assertEqual( a_soln, expected_soln )
 
     # --------------------------------------------------------------- #
@@ -137,6 +118,7 @@ class Test_z3( unittest.TestCase ) :
 
     if os.path.exists( test_db ) :
       os.remove( test_db )
+
 
   ###################
   #  CLASSIC RB DM  #
@@ -199,22 +181,8 @@ class Test_z3( unittest.TestCase ) :
       print a_soln
       sys.exit( "hit print stop." )
 
-    expected_soln = ["clock(['b','a','3','4'])", \
-                     "clock(['a','b','3','4'])", \
-                     "clock(['a','c','3','4'])", \
-                     "clock(['b','a','4','5'])", \
-                     "clock(['a','c','4','5'])", \
-                     "clock(['a','b','4','5'])", \
-                     "clock(['b','c','4','5'])", \
-                     "clock(['c','a','4','5'])", \
-                     "clock(['a','b','1','2'])", \
-                     "clock(['c','b','3','4'])", \
-                     "clock(['b','a','2','3'])", \
-                     "clock(['c','a','2','3'])", \
-                     "clock(['c','b','2','3'])", \
-                     "clock(['b','c','3','4'])", \
-                     "clock(['b','c','2','3'])", \
-                     "clock(['c','b','4','5'])"]
+    expected_soln = ["clock(['a','b','1','2'])", \
+                     "clock(['a','c','1','2'])"]
     self.assertEqual( a_soln, expected_soln )
 
     # --------------------------------------------------------------- #
@@ -363,18 +331,10 @@ class Test_z3( unittest.TestCase ) :
       print a_soln
       sys.exit( "hit print stop." )
 
-    expected_soln = ["clock(['a','c','4','5'])", \
-                     "clock(['Z','a','5','6'])", \
-                     "clock(['a','c','5','6'])", \
+    expected_soln = ["clock(['a','c','5','6'])", \
                      "clock(['a','b','5','6'])", \
-                     "clock(['C','Z','1','2'])", \
-                     "clock(['Z','C','2','3'])", \
-                     "clock(['Z','C','3','4'])", \
-                     "clock(['C','a','4','5'])", \
                      "clock(['a','C','6','7'])", \
-                     "clock(['C','a','3','4'])", \
-                     "clock(['a','b','4','5'])", \
-                     "clock(['a','Z','1','2'])"]
+                     "clock(['C','a','3','4'])"]
     self.assertEqual( a_soln, expected_soln )
 
     # --------------------------------------------------------------- #
@@ -444,15 +404,11 @@ class Test_z3( unittest.TestCase ) :
     if self.PRINT_STOP :
       print "PRINTING A SOLN:"
       print a_soln
+      #res = z3_solver.get_all_solns()
+      #print len( res )
       sys.exit( "hit print stop." )
 
-    expected_soln = ["_NOT_clock(['Node1','Server','2','1'])", \
-                     "clock(['Node1','Server','1','2'])", \
-                     "_NOT_clock(['Node1','Server','1','1'])", \
-                     "_NOT_clock(['Node2','Server','2','1'])", \
-                     "_NOT_clock(['Node1','Server','3','1'])", \
-                     "_NOT_clock(['Node2','Server','1','1'])", \
-                     "_NOT_clock(['Node2','Server','3','1'])"]
+    expected_soln = ["clock(['Node1','Server','1','2'])"]
     self.assertEqual( a_soln, expected_soln )
 
     # --------------------------------------------------------------- #
@@ -518,9 +474,7 @@ class Test_z3( unittest.TestCase ) :
 
     z3_solver = Z3_Solver.Z3_Solver( argDict, orik_rgg )
     a_soln = z3_solver.get_a_soln()
-
-    expected_a_soln = ["clock(['a','c','1','2'])"]
-    self.assertEqual( a_soln, expected_a_soln )
+    expected_a_soln = ["clock(['a','b','1','2'])", "clock(['a','c','1','2'])"]
 
     # get all the solns for all the fmlas for the provenance tree
     all_solns = z3_solver.get_all_solns()
@@ -529,9 +483,11 @@ class Test_z3( unittest.TestCase ) :
       print all_solns
       sys.exit( "hit print stop." )
 
-    expected_all_solns = [ ["clock(['a','c','1','2'])"], \
+    expected_all_solns = [ ["clock(['a','b','1','2'])", "clock(['a','c','1','2'])"], \
                            ["clock(['a','b','1','2'])"], \
-                           ["clock(['a','b','1','2'])", "clock(['a','c','1','2'])"]]
+                           ["clock(['a','c','1','2'])"] ]
+
+    self.assertEqual( a_soln, expected_a_soln )
     self.assertEqual( all_solns, expected_all_solns )
 
     # --------------------------------------------------------------- #

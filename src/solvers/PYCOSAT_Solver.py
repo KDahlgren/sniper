@@ -31,7 +31,8 @@ class PYCOSAT_Solver( object ) :
   #################
   # assume orik rgg input format
   def __init__( self, argDict={}, orik_rgg=None ) :
-    self.argDict = argDict
+    self.argDict     = argDict
+    self.solver_type = "pycosat"
 
     if argDict == {} and orik_rgg == None :
       return
